@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="美国收盘报">
+  <defs>
+    <linearGradient id="uscr-bg" x1="10" y1="6" x2="54" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#12315c"/>
+      <stop offset="1" stop-color="#081729"/>
+    </linearGradient>
+    <linearGradient id="uscr-line" x1="15" y1="45" x2="49" y2="20" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff7a80"/>
+      <stop offset="1" stop-color="#ffd27a"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#uscr-bg)"/>
+  <g fill="none" stroke="#8fc0ff" stroke-opacity=".22" stroke-width="1">
+    <path d="M14 22h36M14 32h36M14 42h36M24 13v40M34 13v40M44 13v40"/>
+  </g>
+  <g fill="#8fc0ff" fill-opacity=".82">
+    <rect x="17" y="36" width="5" height="9" rx="1.2"/>
+    <rect x="27" y="31" width="5" height="14" rx="1.2"/>
+    <rect x="37" y="27" width="5" height="18" rx="1.2"/>
+  </g>
+  <path d="M17 47h30" stroke="#8fc0ff" stroke-width="2" stroke-linecap="round" stroke-opacity=".55"/>
+  <path d="M16 35c5 0 8-5 11-8 4-4 7-2 10-6 3-3 5-4 8-5" fill="none" stroke="url(#uscr-line)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m40.5 15.6 5.6-1.2.5 5.7" fill="none" stroke="#ffd27a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="48" cy="48" r="6.4" fill="#0f2544" stroke="#ffd27a" stroke-width="1.6"/>
+  <path d="m48 44.6 1 2.1 2.3.3-1.7 1.6.4 2.3-2-1.1-2 1.1.4-2.3-1.7-1.6 2.3-.3Z" fill="#ffd27a"/>
+</svg>

@@ -1,0 +1,12 @@
+# 美国收盘报：富途牛牛美股实时行情看板。
+- insert:
+    - id: us-close-report
+      name: dsh-us-close-report
+      config:
+        autoUpdate: true
+        pulseSeconds: 30
+        listRefreshMinutes: 5
+        detailTtlSeconds: 45
+        maxStocks: 50
+        maxSectors: 30
+        maxEtfs: 50
