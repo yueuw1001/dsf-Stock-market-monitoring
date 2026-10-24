@@ -2653,14 +2653,25 @@ window.__ModuleLoader__.load({
           ctx.slots.register({ name: 'main', key: 'us-close-report' }, Page),
         )
 
-        // Shown in the Workbench app grid (auto-classified by type); the panel
-        // itself stays a normal `main` entry opened from there.
-        ctx.slots.inject('workbench.apps', () =>
+        ctx.slots.inject('sidebar.panellist', () =>
           ctx.slots.register(
-            { name: 'workbench.apps', id: 'us-close-report', order: 40, label: () => translate('panel') },
+            { name: 'sidebar.panellist', id: 'us-close-report', order: 40, label: () => translate('panel') },
             ReportIcon,
           ),
         )
+
+        // 工作台（dsh-workbench）会接管侧边栏并把全局面板收进「我的应用」；
+        // 这里显式注册一份，保证在工作台的应用中心里也能直接打开。
+        try {
+          ctx.slots.inject('workbench.apps', () =>
+            ctx.slots.register(
+              { name: 'workbench.apps', id: 'us-close-report', order: 5, label: () => translate('panel') },
+              ReportIcon,
+            ),
+          )
+        } catch {
+          /* 未安装工作台时忽略 */
+        }
       },
     }
   },
