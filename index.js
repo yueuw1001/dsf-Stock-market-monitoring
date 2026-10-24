@@ -6,6 +6,7 @@
  *   GET /dsh-usclose/api.json     看板快照（指数 / 板块 / 个股 / ETF）
  *   GET /dsh-usclose/detail.json  单标的详情（个股 / ETF / 板块 / 指数）
  *   GET /dsh-usclose/company.json 公司全部资料（detail 的个股别名）
+ *   GET /dsh-usclose/kline.json   5 分钟 / 日 / 周 / 月 / 季 / 年 K 线
  *   Tool `us_close_report`        给 Agent 读取同一份行情与详情
  */
 
@@ -20,14 +21,16 @@ import {
   fetchDetail,
   usMarketPhase,
 } from './lib/futu.js'
+import { fetchKline, PERIODS } from './lib/kline.js'
 
 export const name = 'dsh-us-close-report'
 export const inject = ['webServer', 'tools']
 
-const VERSION = '1.0.0'
+const VERSION = '1.1.0'
 const API_PATH = '/dsh-usclose/api.json'
 const DETAIL_PATH = '/dsh-usclose/detail.json'
 const COMPANY_PATH = '/dsh-usclose/company.json'
+const KLINE_PATH = '/dsh-usclose/kline.json'
 
 const DEFAULTS = {
   autoUpdate: true,
@@ -402,6 +405,42 @@ export function apply(ctx, config) {
           const url = new URL(req.url ?? COMPANY_PATH, 'http://127.0.0.1')
           const code = url.searchParams.get('code') ?? ''
           sendJson(res, 200, await loadDetail(code))
+        } catch (error) {
+          sendJson(res, 200, { ok: false, error: errorText(error) })
+        }
+      },
+    }),
+  )
+
+  // K 线：5 分钟 / 日 / 周 / 月 / 季 / 年。富途优先，风控时回退东方财富。
+  ctx.effect(() =>
+    ctx.webServer.register({
+      kind: 'exact',
+      path: KLINE_PATH,
+      handler: async (req, res) => {
+        if (req.method !== 'GET') {
+          sendJson(res, 405, { ok: false, error: '仅支持 GET' })
+          return
+        }
+        try {
+          const url = new URL(req.url ?? KLINE_PATH, 'http://127.0.0.1')
+          const code = String(url.searchParams.get('code') ?? '').trim()
+          const period = String(url.searchParams.get('period') ?? 'day').trim()
+          if (!code) {
+            sendJson(res, 400, { ok: false, error: '缺少 code 参数' })
+            return
+          }
+          if (!PERIODS[period]) {
+            sendJson(res, 400, { ok: false, error: 'period 仅支持 5m/day/week/month/quarter/year' })
+            return
+          }
+          const detail = await loadDetail(code)
+          if (detail.kind === 'sector') {
+            sendJson(res, 200, { ok: false, error: '板块指数暂无 K 线数据' })
+            return
+          }
+          const payload = await fetchKline(detail.code, period, detail.meta, detail)
+          sendJson(res, 200, payload)
         } catch (error) {
           sendJson(res, 200, { ok: false, error: errorText(error) })
         }

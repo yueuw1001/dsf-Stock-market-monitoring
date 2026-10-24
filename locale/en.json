@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "US Close Report",
-    "description": "A Futu-powered US market dashboard with live indices, sectors, stocks and ETFs; open any item for details, industry peers and the full company profile."
+    "description": "A Futu-powered US market dashboard with live indices, sectors, stocks and ETFs; open any item for a GenUI intraday chart and draggable 5m / daily / weekly / monthly / quarterly / yearly candlestick charts, industry peers and the full company profile."
   }
 }

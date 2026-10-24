@@ -1,6 +1,6 @@
 {
   "name": "dsh-us-close-report",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "description": "美国收盘报：富途牛牛美股指数 / 板块 / 个股 / ETF 实时行情看板，点击查看详情、行业关联公司与公司资料。",
@@ -14,6 +14,7 @@
     "index.js",
     "client.js",
     "lib/futu.js",
+    "lib/kline.js",
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",

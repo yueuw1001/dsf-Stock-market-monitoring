@@ -17,6 +17,7 @@ window.__ModuleLoader__.load({
     const NS = 'us-close-report'
     const API = 'dsh-usclose/api.json'
     const DETAIL = 'dsh-usclose/detail.json'
+    const KLINE = 'dsh-usclose/kline.json'
     const REFRESH_MS = 15_000
 
     const DICT = {
@@ -107,7 +108,29 @@ window.__ModuleLoader__.load({
         noNews: '暂无相关资讯',
         finance: '业务与财务',
         chart: '分时走势',
+        chartTitle: '走势图',
         noChart: '暂无分时数据',
+        close: '收盘',
+        date: '日期',
+        period: '周期',
+        'period.intraday': '分时',
+        'period.5m': '5分',
+        'period.day': '日K',
+        'period.week': '周K',
+        'period.month': '月K',
+        'period.quarter': '季K',
+        'period.year': '年K',
+        klineLoading: 'K线加载中…',
+        klineFailed: 'K线加载失败',
+        klineNoData: '暂无K线数据',
+        chartHint: '拖动平移 · 滚轮缩放 · 点击蜡烛查看明细',
+        klineSource: 'K线来源',
+        genuiChart: 'GenUI 分时',
+        genuiFallback: 'GenUI 不可用，已切换为内置分时图',
+        resetZoom: '重置缩放',
+        zoomIn: '放大',
+        zoomOut: '缩小',
+        changePct: '涨跌幅',
         status: '状态',
         loadDetail: '打开详情',
         etfTrust: '基金资料',
@@ -210,7 +233,29 @@ window.__ModuleLoader__.load({
         noNews: 'No news',
         finance: 'Business & financials',
         chart: 'Intraday',
+        chartTitle: 'Price chart',
         noChart: 'No intraday data',
+        close: 'Close',
+        date: 'Date',
+        period: 'Period',
+        'period.intraday': 'Intraday',
+        'period.5m': '5m',
+        'period.day': '1D',
+        'period.week': '1W',
+        'period.month': '1M',
+        'period.quarter': '1Q',
+        'period.year': '1Y',
+        klineLoading: 'Loading K-line…',
+        klineFailed: 'Failed to load K-line',
+        klineNoData: 'No K-line data',
+        chartHint: 'Drag to pan · wheel to zoom · click a candle for details',
+        klineSource: 'K-line source',
+        genuiChart: 'GenUI intraday',
+        genuiFallback: 'GenUI unavailable, using the built-in chart',
+        resetZoom: 'Reset zoom',
+        zoomIn: 'Zoom in',
+        zoomOut: 'Zoom out',
+        changePct: 'Change',
         status: 'Status',
         loadDetail: 'Details',
         etfTrust: 'Fund data',
@@ -323,6 +368,22 @@ window.__ModuleLoader__.load({
         month: '2-digit',
         day: '2-digit',
       })
+    }
+
+    /** 富途的分钟数据可能跨两个交易日；只保留最后一个纽约交易日。 */
+    function lastSessionPoints(points) {
+      const clean = (points ?? []).filter(
+        (point) => Number.isFinite(Number(point.t)) && toNum(point.price) !== null,
+      )
+      if (!clean.length) return []
+      let formatter
+      try {
+        formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' })
+      } catch {
+        return clean
+      }
+      const lastDate = formatter.format(new Date(Number(clean[clean.length - 1].t)))
+      return clean.filter((point) => formatter.format(new Date(Number(point.t))) === lastDate)
     }
 
     const KIND_KEY = {
@@ -611,6 +672,30 @@ window.__ModuleLoader__.load({
 .uscr-chart-meta{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;
   color:var(--dsw-alias-label-secondary);padding:0 2px;margin-bottom:2px;}
 .uscr-chart{display:block;width:100%;height:150px;}
+.uscr-periods{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;}
+.uscr-period{appearance:none;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);
+  color:var(--dsw-alias-label-secondary);font:inherit;font-size:11.5px;font-weight:600;padding:4px 9px;
+  border-radius:7px;cursor:pointer;transition:background .14s,border-color .14s,color .14s;}
+.uscr-period:hover{border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary);}
+.uscr-period.is-active{background:var(--dsw-alias-brand-primary);border-color:var(--dsw-alias-brand-primary);color:#fff;}
+.uscr-genui-chart{border:1px solid var(--dsw-alias-border-l1);border-radius:11px;background:var(--dsw-alias-bg-layer-1);
+  min-height:240px;overflow:hidden;padding:2px;}
+.uscr-genui-chart dsh-genui-card{display:block;width:100%;height:240px;min-height:220px;}
+.uscr-kline{border:1px solid var(--dsw-alias-border-l1);border-radius:11px;background:var(--dsw-alias-bg-layer-1);
+  padding:10px 8px 6px;position:relative;overflow:hidden;}
+.uscr-kline-info{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;font-size:11px;
+  color:var(--dsw-alias-label-secondary);padding:0 4px 8px;}
+.uscr-kline-date{font-size:12px;font-weight:700;color:var(--dsw-alias-label-primary);}
+.uscr-kline-info-item{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap;}
+.uscr-kline-info-item em{font-style:normal;font-size:10px;color:var(--dsw-alias-label-secondary);}
+.uscr-kline-info-item b{font-size:12px;font-weight:700;color:var(--dsw-alias-label-primary);}
+.uscr-kline-svg{display:block;width:100%;touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none;}
+.uscr-kline-tools{position:absolute;right:10px;bottom:30px;display:flex;gap:4px;}
+.uscr-kline-tools .uscr-icon-btn{background:var(--dsw-alias-bg-layer-2);}
+.uscr-kline-skeleton{height:300px;border-radius:11px;border:1px solid var(--dsw-alias-border-l1);
+  background:linear-gradient(90deg,var(--dsw-alias-bg-layer-1),var(--dsw-alias-bg-layer-2),var(--dsw-alias-bg-layer-1));
+  background-size:200% 100%;animation:uscr-shimmer 1.4s infinite;}
+.uscr-chart-note{font-size:10.5px;line-height:1.5;color:var(--dsw-alias-label-secondary);margin-top:6px;}
 .uscr-trust{display:flex;flex-wrap:wrap;gap:8px;}
 .uscr-trust-item{flex:1 1 120px;border:1px solid var(--dsw-alias-border-l1);border-radius:9px;background:var(--dsw-alias-bg-layer-1);padding:8px 10px;}
 .uscr-trust-item span{display:block;font-size:10.5px;color:var(--dsw-alias-label-secondary);margin-bottom:2px;}
@@ -1107,6 +1192,644 @@ window.__ModuleLoader__.load({
     }
 
     /* ------------------------------------------------------------ */
+    /* 图表：分时（GenUI）+ K 线（原生可拖拽蜡烛图）                  */
+    /* ------------------------------------------------------------ */
+
+    const KLINE_PERIODS = [
+      ['intraday', 'period.intraday'],
+      ['5m', 'period.5m'],
+      ['day', 'period.day'],
+      ['week', 'period.week'],
+      ['month', 'period.month'],
+      ['quarter', 'period.quarter'],
+      ['year', 'period.year'],
+    ]
+
+    function cssVar(name, fallback) {
+      try {
+        const host = document.querySelector('.uscr-root')
+        const value = getComputedStyle(host ?? document.documentElement).getPropertyValue(name).trim()
+        return value || fallback
+      } catch {
+        return fallback
+      }
+    }
+
+    let genuiRuntimePromise = null
+    function ensureGenuiRuntime() {
+      if (typeof customElements !== 'undefined' && customElements.get('dsh-genui-card')) {
+        return Promise.resolve()
+      }
+      if (genuiRuntimePromise) return genuiRuntimePromise
+      genuiRuntimePromise = new Promise((resolve, reject) => {
+        if (typeof document === 'undefined') {
+          reject(new Error('no document'))
+          return
+        }
+        const timer = setTimeout(() => reject(new Error('GenUI runtime timeout')), 15_000)
+        const existing = document.querySelector('script[data-uscr-genui-runtime]')
+        const script = existing ?? document.createElement('script')
+        script.type = 'module'
+        script.src = '/dsh-genui/runtime.js'
+        script.dataset.uscrGenuiRuntime = '1'
+        script.addEventListener('load', () => {
+          clearTimeout(timer)
+          if (customElements.get('dsh-genui-card')) resolve()
+          else reject(new Error('GenUI runtime loaded without dsh-genui-card'))
+        })
+        script.addEventListener('error', () => {
+          clearTimeout(timer)
+          reject(new Error('GenUI runtime failed to load'))
+        })
+        if (!existing) document.head.appendChild(script)
+      }).catch((error) => {
+        genuiRuntimePromise = null
+        throw error
+      })
+      return genuiRuntimePromise
+    }
+
+    function GenuiIntraday({ points, prevClose, t }) {
+      const hostRef = React.useRef(null)
+      const [failed, setFailed] = React.useState(false)
+
+      const sampled = React.useMemo(() => {
+        const clean = lastSessionPoints(points).map((point) => ({
+          t: Number(point.t),
+          price: toNum(point.price),
+        }))
+        if (!clean.length) return []
+        const step = Math.max(1, Math.ceil(clean.length / 220))
+        const out = clean.filter((_, index) => index % step === 0)
+        const last = clean[clean.length - 1]
+        if (out[out.length - 1]?.t !== last.t) out.push(last)
+        return out
+      }, [points])
+
+      const schema = React.useMemo(() => {
+        const base = toNum(prevClose)
+        const rows = sampled.map((point) => {
+          const row = {
+            time: shortTime(point.t),
+            价格: Number(point.price.toFixed(3)),
+          }
+          if (base !== null) row['昨收'] = base
+          return row
+        })
+        return {
+          componentName: 'Page',
+          children: [
+            {
+              componentName: 'TinyHuichartsLine',
+              props: {
+                options: {
+                  data: rows,
+                  xAxis: { data: 'time' },
+                  yAxis: {},
+                  legend: { show: true },
+                  tooltip: { trigger: 'axis' },
+                  dataZoom: { type: 'inside' },
+                  padding: [22, 8, 22, 8],
+                  color: [cssVar('--uscr-up', '#e5484d'), cssVar('--uscr-flat', '#8a94a6')],
+                },
+              },
+            },
+          ],
+        }
+      }, [sampled, prevClose])
+
+      React.useEffect(() => {
+        let cancelled = false
+        const host = hostRef.current
+        if (!host) return undefined
+        let checkTimer = null
+        ensureGenuiRuntime()
+          .then(() => {
+            if (cancelled || !hostRef.current) return
+            host.innerHTML = ''
+            const card = document.createElement('dsh-genui-card')
+            card.style.display = 'block'
+            card.style.width = '100%'
+            card.style.height = '240px'
+            card.style.minHeight = '220px'
+            host.appendChild(card)
+            card.content = JSON.stringify(schema)
+            card.isJsonComplete = true
+            card.generating = false
+            checkTimer = setTimeout(() => {
+              if (cancelled || !hostRef.current) return
+              const rendered = hostRef.current.querySelector('dsh-genui-card')
+              if (rendered && !rendered.querySelector('canvas,svg')) setFailed(true)
+            }, 4_000)
+          })
+          .catch(() => {
+            if (!cancelled) setFailed(true)
+          })
+        return () => {
+          cancelled = true
+          if (checkTimer) clearTimeout(checkTimer)
+          if (hostRef.current) hostRef.current.innerHTML = ''
+        }
+      }, [schema])
+
+      if (failed) {
+        return h(
+          React.Fragment,
+          null,
+          h(PriceChart, { points: lastSessionPoints(points), prevClose, t }),
+          h('div', { className: 'uscr-chart-note' }, t('genuiFallback')),
+        )
+      }
+
+      return h('div', {
+        ref: hostRef,
+        className: 'uscr-genui-chart',
+        style: {
+          '--tr-bubble-content-bg': 'transparent',
+          '--tr-bubble-text-color': 'var(--dsw-alias-label-primary)',
+          '--tr-bubble-content-padding': '0',
+          '--tr-bubble-content-border-radius': '10px',
+          '--tr-bubble-content-box-shadow': 'none',
+        },
+      })
+    }
+
+    function KlineInfo({ bar, preClose, period, t }) {
+      if (!bar) return null
+      const change =
+        bar.changePct ??
+        (preClose ? ((bar.c - preClose) / preClose) * 100 : null)
+      const tone = toneOf(change)
+      const items = [
+        [t('open'), fmt(bar.o, 3)],
+        [t('high'), fmt(bar.h, 3)],
+        [t('low'), fmt(bar.l, 3)],
+        [t('close'), fmt(bar.c, 3)],
+        [t('changePct'), pct(change)],
+        [t('volume'), amount(bar.v)],
+      ]
+      if (bar.turnover) items.push([t('turnover'), amount(bar.turnover)])
+      return h(
+        'div',
+        { className: 'uscr-kline-info' },
+        h('span', { className: 'uscr-kline-date' }, bar.date),
+        items.map(([label, value], index) =>
+          h(
+            'span',
+            { key: `${label}-${index}`, className: 'uscr-kline-info-item' },
+            h('em', null, label),
+            h(
+              'b',
+              { className: label === t('changePct') ? `uscr-${tone}` : '' },
+              value,
+            ),
+          ),
+        ),
+      )
+    }
+
+    function KlineChart({ bars, period, preClose, t }) {
+      const wrapRef = React.useRef(null)
+      const svgRef = React.useRef(null)
+      const dragRef = React.useRef(null)
+      const [width, setWidth] = React.useState(720)
+      const [view, setView] = React.useState(() => ({
+        visible: Math.min(bars.length || 90, period === '5m' ? 96 : 90),
+        end: bars.length,
+        selected: Math.max(0, bars.length - 1),
+      }))
+      const [hover, setHover] = React.useState(null)
+
+      React.useEffect(() => {
+        if (!wrapRef.current) return undefined
+        const observer = new ResizeObserver((entries) => {
+          const next = entries[0]?.contentRect?.width
+          if (next && Number.isFinite(next)) setWidth(Math.max(300, Math.round(next)))
+        })
+        observer.observe(wrapRef.current)
+        return () => observer.disconnect()
+      }, [])
+
+      React.useEffect(() => {
+        const count = bars.length
+        const visible = Math.min(count || 1, period === '5m' ? 96 : 90)
+        setView({ visible, end: count, selected: Math.max(0, count - 1) })
+        setHover(null)
+      }, [bars, period])
+
+      const H = 330
+      const PAD = { left: 8, right: 60, top: 20, bottom: 22 }
+      const VOLUME_H = 52
+      const plotW = Math.max(40, width - PAD.left - PAD.right)
+      const priceH = H - PAD.top - PAD.bottom - VOLUME_H
+      const volumeBottom = H - PAD.bottom
+      const visible = Math.max(1, Math.min(view.visible, bars.length || 1))
+      const end = Math.max(visible, Math.min(view.end, bars.length))
+      const start = Math.max(0, Math.min(end - visible, bars.length - visible))
+      const slice = bars.slice(start, end)
+      const barW = plotW / Math.max(1, slice.length)
+      const bodyW = Math.max(1, barW * 0.62)
+
+      const values = slice.flatMap((bar) => [bar.h, bar.l])
+      const base = toNum(preClose)
+      let min = values.length ? Math.min(...values) : 0
+      let max = values.length ? Math.max(...values) : 1
+      const span = max - min || Math.max(1, max * 0.02)
+      min -= span * 0.04
+      max += span * 0.04
+      const range = max - min || 1
+      const y = (value) => PAD.top + priceH * (1 - (value - min) / range)
+      const x = (index) => PAD.left + (index + 0.5) * barW
+      const volumeMax = Math.max(1, ...slice.map((bar) => bar.v ?? 0))
+      const active = bars[
+        hover !== null ? Math.min(bars.length - 1, start + hover) : Math.min(bars.length - 1, view.selected)
+      ]
+
+      const zoomBy = React.useCallback(
+        (factor) => {
+          setView((previous) => {
+            const maximum = Math.min(260, Math.max(16, bars.length))
+            const next = Math.min(maximum, Math.max(16, Math.round(previous.visible * factor)))
+            return {
+              ...previous,
+              visible: next,
+              end: Math.min(Math.max(previous.end, next), bars.length),
+            }
+          })
+        },
+        [bars.length],
+      )
+
+      React.useEffect(() => {
+        const element = wrapRef.current
+        if (!element) return undefined
+        const onWheel = (event) => {
+          if (!event.deltaY) return
+          event.preventDefault()
+          zoomBy(event.deltaY > 0 ? 1.18 : 0.85)
+        }
+        element.addEventListener('wheel', onWheel, { passive: false })
+        return () => element.removeEventListener('wheel', onWheel)
+      }, [zoomBy])
+
+      const pointerIndex = (event) => {
+        const rect = svgRef.current?.getBoundingClientRect()
+        if (!rect || rect.width <= 0) return 0
+        const relative = (event.clientX - rect.left - PAD.left) / Math.max(0.001, barW)
+        return Math.max(0, Math.min(slice.length - 1, Math.floor(relative)))
+      }
+
+      const onPointerDown = (event) => {
+        dragRef.current = { x: event.clientX, end, moved: false }
+        setHover(pointerIndex(event))
+        try {
+          event.currentTarget.setPointerCapture(event.pointerId)
+        } catch {
+          /* 忽略 */
+        }
+      }
+
+      const onPointerMove = (event) => {
+        const index = pointerIndex(event)
+        setHover(index)
+        const drag = dragRef.current
+        if (!drag) return
+        const dx = event.clientX - drag.x
+        if (Math.abs(dx) > 3) drag.moved = true
+        const shift = Math.round(dx / Math.max(0.001, barW))
+        setView((previous) => ({
+          ...previous,
+          end: Math.min(bars.length, Math.max(previous.visible, drag.end - shift)),
+        }))
+      }
+
+      const onPointerUp = (event) => {
+        const drag = dragRef.current
+        dragRef.current = null
+        if (!drag?.moved) {
+          const index = pointerIndex(event)
+          setView((previous) => ({
+            ...previous,
+            selected: Math.min(bars.length - 1, start + index),
+          }))
+        }
+        try {
+          event.currentTarget.releasePointerCapture(event.pointerId)
+        } catch {
+          /* 忽略 */
+        }
+      }
+
+      const onPointerLeave = () => {
+        if (!dragRef.current) setHover(null)
+      }
+
+      if (!slice.length) return h(Empty, { text: t('klineNoData') })
+
+      const gridLines = [0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+        const value = max - range * ratio
+        const yPos = y(value)
+        return h(
+          'g',
+          { key: `grid-${ratio}` },
+          h('line', {
+            x1: PAD.left,
+            x2: width - PAD.right,
+            y1: yPos,
+            y2: yPos,
+            stroke: 'var(--dsw-alias-border-l1)',
+            strokeWidth: 1,
+            strokeDasharray: ratio === 0 || ratio === 1 ? '' : '3 4',
+          }),
+          h(
+            'text',
+            {
+              x: width - PAD.right + 5,
+              y: yPos + 3,
+              fontSize: 10,
+              fill: 'var(--dsw-alias-label-secondary)',
+            },
+            fmt(value, value > 1000 ? 0 : 2),
+          ),
+        )
+      })
+
+      const xLabels = [0, Math.floor(slice.length / 2), slice.length - 1]
+        .filter((value, index, list) => list.indexOf(value) === index)
+        .map((index) => {
+          const bar = slice[index]
+          const label =
+            period === '5m'
+              ? bar.date.slice(11)
+              : period === 'year'
+                ? bar.date.slice(0, 4)
+                : period === 'quarter' || period === 'month'
+                  ? bar.date.slice(0, 7)
+                  : bar.date.slice(5, 10)
+          return h(
+            'text',
+            {
+              key: `x-${index}`,
+              x: x(index),
+              y: H - 6,
+              fontSize: 10,
+              fill: 'var(--dsw-alias-label-secondary)',
+              textAnchor: index === 0 ? 'start' : index === slice.length - 1 ? 'end' : 'middle',
+            },
+            label,
+          )
+        })
+
+      return h(
+        'div',
+        { className: 'uscr-kline', ref: wrapRef },
+        h(KlineInfo, { bar: active, preClose, period, t }),
+        h(
+          'svg',
+          {
+            ref: svgRef,
+            width: '100%',
+            height: H,
+            viewBox: `0 0 ${width} ${H}`,
+            className: 'uscr-kline-svg',
+            onPointerDown,
+            onPointerMove,
+            onPointerUp,
+            onPointerLeave,
+          },
+          gridLines,
+          base !== null && base >= min && base <= max
+            ? h('line', {
+                x1: PAD.left,
+                x2: width - PAD.right,
+                y1: y(base),
+                y2: y(base),
+                stroke: 'var(--dsw-alias-label-secondary)',
+                strokeDasharray: '4 4',
+                strokeOpacity: 0.55,
+                strokeWidth: 1,
+              })
+            : null,
+          slice.map((bar, index) => {
+            const center = x(index)
+            const up = bar.c >= bar.o
+            const color = up ? 'var(--uscr-up)' : 'var(--uscr-down)'
+            const top = Math.min(y(bar.o), y(bar.c))
+            const height = Math.max(1, Math.abs(y(bar.c) - y(bar.o)))
+            return h(
+              'g',
+              { key: `candle-${index}` },
+              h('line', {
+                x1: center,
+                x2: center,
+                y1: y(bar.h),
+                y2: y(bar.l),
+                stroke: color,
+                strokeWidth: 1,
+              }),
+              h('rect', {
+                x: center - bodyW / 2,
+                y: top,
+                width: bodyW,
+                height,
+                fill: color,
+                stroke: color,
+                strokeWidth: 0.5,
+                rx: 0.4,
+              }),
+              h('rect', {
+                x: center - bodyW / 2,
+                y: volumeBottom - ((bar.v ?? 0) / volumeMax) * VOLUME_H,
+                width: bodyW,
+                height: Math.max(0.5, ((bar.v ?? 0) / volumeMax) * VOLUME_H),
+                fill: color,
+                opacity: 0.55,
+              }),
+            )
+          }),
+          h('line', {
+            x1: PAD.left,
+            x2: width - PAD.right,
+            y1: volumeBottom - VOLUME_H,
+            y2: volumeBottom - VOLUME_H,
+            stroke: 'var(--dsw-alias-border-l1)',
+            strokeWidth: 1,
+          }),
+          hover !== null && slice[hover]
+            ? h(
+                'g',
+                null,
+                h('line', {
+                  x1: x(hover),
+                  x2: x(hover),
+                  y1: PAD.top,
+                  y2: volumeBottom,
+                  stroke: 'var(--dsw-alias-label-secondary)',
+                  strokeDasharray: '3 3',
+                  strokeOpacity: 0.7,
+                  strokeWidth: 1,
+                }),
+                h('line', {
+                  x1: PAD.left,
+                  x2: width - PAD.right,
+                  y1: y(slice[hover].c),
+                  y2: y(slice[hover].c),
+                  stroke: 'var(--dsw-alias-label-secondary)',
+                  strokeDasharray: '3 3',
+                  strokeOpacity: 0.7,
+                  strokeWidth: 1,
+                }),
+                h('circle', {
+                  cx: x(hover),
+                  cy: y(slice[hover].c),
+                  r: 2.8,
+                  fill: slice[hover].c >= slice[hover].o ? 'var(--uscr-up)' : 'var(--uscr-down)',
+                }),
+              )
+            : null,
+          xLabels,
+        ),
+        h(
+          'div',
+          { className: 'uscr-kline-tools' },
+          h(
+            'button',
+            { type: 'button', className: 'uscr-icon-btn', onClick: () => zoomBy(0.8), title: t('zoomIn'), 'aria-label': t('zoomIn') },
+            '+',
+          ),
+          h(
+            'button',
+            { type: 'button', className: 'uscr-icon-btn', onClick: () => zoomBy(1.25), title: t('zoomOut'), 'aria-label': t('zoomOut') },
+            '−',
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'uscr-icon-btn',
+              onClick: () => {
+                const count = bars.length
+                setView({ visible: Math.min(count, period === '5m' ? 96 : 90), end: count, selected: count - 1 })
+              },
+              title: t('resetZoom'),
+              'aria-label': t('resetZoom'),
+            },
+            '⟲',
+          ),
+        ),
+        h('div', { className: 'uscr-chart-note' }, t('chartHint')),
+      )
+    }
+
+    function ChartPanel({ detail, t }) {
+      const [period, setPeriod] = React.useState('intraday')
+      const [state, setState] = React.useState({ loading: false, data: null, error: '' })
+      const [nonce, setNonce] = React.useState(0)
+      const cache = React.useRef(new Map())
+
+      React.useEffect(() => {
+        setPeriod('intraday')
+        setState({ loading: false, data: null, error: '' })
+      }, [detail.code])
+
+      React.useEffect(() => {
+        if (period === 'intraday' || detail.kind === 'sector') {
+          setState({ loading: false, data: null, error: '' })
+          return undefined
+        }
+        const key = `${detail.code}:${period}`
+        const cached = cache.current.get(key)
+        if (cached && Date.now() - cached.at < 5 * 60_000) {
+          setState({ loading: false, data: cached.data, error: '' })
+          return undefined
+        }
+        let cancelled = false
+        setState({ loading: true, data: null, error: '' })
+        fetch(`${KLINE}?code=${encodeURIComponent(detail.code)}&period=${encodeURIComponent(period)}`, {
+          cache: 'no-store',
+          headers: { Accept: 'application/json' },
+        })
+          .then((response) => response.json())
+          .then((json) => {
+            if (cancelled) return
+            if (!json?.ok) throw new Error(json?.error ?? t('klineFailed'))
+            cache.current.set(key, { at: Date.now(), data: json })
+            setState({ loading: false, data: json, error: '' })
+          })
+          .catch((error) => {
+            if (!cancelled) setState({ loading: false, data: null, error: String(error?.message ?? error) })
+          })
+        return () => {
+          cancelled = true
+        }
+      }, [period, detail.code, detail.kind, nonce])
+
+      const sourceLabel =
+        period === 'intraday' ? '富途牛牛' : state.data?.sourceLabel ?? ''
+      const extra = state.data?.label
+        ? `${sourceLabel} · ${state.data.label}`
+        : sourceLabel
+      const periods = detail.kind === 'sector' ? KLINE_PERIODS.slice(0, 1) : KLINE_PERIODS
+
+      const body = (() => {
+        if (period === 'intraday') {
+          if (detail.chart?.length > 1) {
+            return h(GenuiIntraday, { points: detail.chart, prevClose: detail.quote?.prevClose, t })
+          }
+          return h(Empty, { text: t('noChart') })
+        }
+        if (state.loading) return h('div', { className: 'uscr-kline-skeleton' })
+        if (state.error) {
+          return h(
+            'div',
+            { className: 'uscr-drawer-error', style: { margin: 0 } },
+            h('div', { style: { fontWeight: 700, marginBottom: 6 } }, t('klineFailed')),
+            h('div', { className: 'uscr-updated' }, state.error),
+            h(
+              'button',
+              { type: 'button', className: 'uscr-btn', style: { marginTop: 10 }, onClick: () => setNonce((value) => value + 1) },
+              t('retry'),
+            ),
+          )
+        }
+        if (!state.data?.bars?.length) return h(Empty, { text: t('klineNoData') })
+        return h(KlineChart, {
+          bars: state.data.bars,
+          period,
+          preClose: state.data.preClose ?? detail.quote?.prevClose,
+          t,
+        })
+      })()
+
+      return h(
+        Section,
+        { title: t('chartTitle'), extra },
+        h(
+          'div',
+          { className: 'uscr-periods', role: 'tablist' },
+          periods.map(([key, labelKey]) =>
+            h(
+              'button',
+              {
+                type: 'button',
+                role: 'tab',
+                key,
+                'aria-selected': period === key,
+                className: `uscr-period ${period === key ? 'is-active' : ''}`,
+                onClick: () => setPeriod(key),
+              },
+              t(labelKey),
+            ),
+          ),
+        ),
+        body,
+        state.data?.note
+          ? h('div', { className: 'uscr-chart-note' }, `${state.data.sourceLabel} · ${state.data.note}`)
+          : null,
+      )
+    }
+
+    /* ------------------------------------------------------------ */
     /* 详情抽屉                                                      */
     /* ------------------------------------------------------------ */
 
@@ -1323,13 +2046,7 @@ window.__ModuleLoader__.load({
               ? h(
                   React.Fragment,
                   null,
-                  current.chart?.length > 1
-                    ? h(
-                        Section,
-                        { title: t('chart'), extra: t('quote') },
-                        h(PriceChart, { points: current.chart, prevClose: q.prevClose, t }),
-                      )
-                    : null,
+                  h(ChartPanel, { detail: current, t }),
                   current.breadth
                     ? h(
                         Section,
@@ -1936,9 +2653,11 @@ window.__ModuleLoader__.load({
           ctx.slots.register({ name: 'main', key: 'us-close-report' }, Page),
         )
 
-        ctx.slots.inject('sidebar.panellist', () =>
+        // Shown in the Workbench app grid (auto-classified by type); the panel
+        // itself stays a normal `main` entry opened from there.
+        ctx.slots.inject('workbench.apps', () =>
           ctx.slots.register(
-            { name: 'sidebar.panellist', id: 'us-close-report', order: 40, label: () => translate('panel') },
+            { name: 'workbench.apps', id: 'us-close-report', order: 40, label: () => translate('panel') },
             ReportIcon,
           ),
         )
