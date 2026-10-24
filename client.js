@@ -679,8 +679,8 @@ window.__ModuleLoader__.load({
 .uscr-period:hover{border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary);}
 .uscr-period.is-active{background:var(--dsw-alias-brand-primary);border-color:var(--dsw-alias-brand-primary);color:#fff;}
 .uscr-genui-chart{border:1px solid var(--dsw-alias-border-l1);border-radius:11px;background:var(--dsw-alias-bg-layer-1);
-  min-height:240px;overflow:hidden;padding:2px;}
-.uscr-genui-chart dsh-genui-card{display:block;width:100%;height:240px;min-height:220px;}
+  min-height:300px;overflow:hidden;padding:2px;}
+.uscr-genui-chart dsh-genui-card{display:block;width:100%;height:300px;min-height:260px;}
 .uscr-kline{border:1px solid var(--dsw-alias-border-l1);border-radius:11px;background:var(--dsw-alias-bg-layer-1);
   padding:10px 8px 6px;position:relative;overflow:hidden;}
 .uscr-kline-info{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;font-size:11px;
@@ -1310,8 +1310,8 @@ window.__ModuleLoader__.load({
             const card = document.createElement('dsh-genui-card')
             card.style.display = 'block'
             card.style.width = '100%'
-            card.style.height = '240px'
-            card.style.minHeight = '220px'
+            card.style.height = '300px'
+            card.style.minHeight = '260px'
             host.appendChild(card)
             card.content = JSON.stringify(schema)
             card.isJsonComplete = true
